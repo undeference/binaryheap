@@ -15,6 +15,7 @@ size_t heapsize (bheap_t *h);
 size_t heapcount (bheap_t *h);
 int heappeek (bheap_t *h, void *p);
 void heapup (bheap_t *h, void *el);
+int heapdowni (bheap_t *h, void *p, size_t i);
 int heapdown (bheap_t *h, void *p);
 int heapverify (bheap_t *h);
 #ifndef NDEBUG

@@ -69,8 +69,8 @@ void heapup (bheap_t *h, void *el) {
  * 2. compare root with children; if not in correct order…
  * 3. swap with the correct child (based on dir)
  */
-int heapdown (bheap_t *h, void *p) {
-	size_t i = 0, c;
+int heapdowni (bheap_t *h, void *p, size_t i) {
+	size_t c;
 	DEBUG ("copy to %p", p);
 
 	if (h->foot == 0)
@@ -97,6 +97,10 @@ int heapdown (bheap_t *h, void *p) {
 	DEBUG ("\tcopy last element [%zd] to %zd", h->foot, i);
 	_heap_set_id (h, i, h->foot);
 	return 1;
+}
+
+int heapdown (bheap_t *h, void *p) {
+	return heapdowni (h, p, (size_t i)0);
 }
 
 int heapverify (bheap_t *h) {
