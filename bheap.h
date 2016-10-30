@@ -5,7 +5,7 @@ typedef struct {
 	int dir;
 	size_t foot, num, size;
 	int (*cmp)(const void *, const void *);
-	byte h[];
+	unsigned char h[];
 } bheap_t;
 
 bheap_t *heapalloc (int dir, size_t nmemb, size_t size, int (*cmp)(const void *, const void *));
