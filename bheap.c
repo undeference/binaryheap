@@ -1,6 +1,15 @@
 #include <string.h>
 #include <bheap.h>
 
+#ifdef HEAPDEBUG
+#include <stdio.h>
+#define HEAPDBG(f,...) \
+	fprintf (stderr, "%s:%d %s() " f "\n", \
+		__FILE__, __LINE__, __func__, ##__VA_ARGS__)
+#else
+#define HEAPDBG(f,...)
+#endif
+
 bheap_t *heapalloc (int dir, size_t nmemb, size_t size, int (*cmp)(const void *, const void *)) {
 	bheap_t *h = malloc (sizeof (bheap_t) + nmemb * size);
 	h->dir = dir;
@@ -8,7 +17,7 @@ bheap_t *heapalloc (int dir, size_t nmemb, size_t size, int (*cmp)(const void *,
 	h->size = size;
 	h->cmp = cmp;
 	h->foot = 0;
-	DEBUG ("%s-heap %p of up to %zd items of size %zd",
+	HEAPDBG ("%s-heap %p of up to %zd items of size %zd",
 		h->dir < 0 ? "min" : "max", h, h->num, h->size);
 	return h;
 }
@@ -71,7 +80,7 @@ void heapup (bheap_t *h, void *el) {
  */
 int heapdowni (bheap_t *h, void *p, size_t i) {
 	size_t c;
-	DEBUG ("copy to %p", p);
+	HEAPDBG ("copy to %p", p);
 
 	if (h->foot == 0)
 		return 0;
@@ -85,16 +94,16 @@ int heapdowni (bheap_t *h, void *p, size_t i) {
 		/* find the bigger child */
 		if (c + 1 < h->foot && _heap_cmp_id (h, c, c + 1) < 0)
 			c++;
-		DEBUG ("\tcompare last element [%zd] with [%zd] (larger child of [%zd])", h->foot, c, i);
+		HEAPDBG ("\tcompare last element [%zd] with [%zd] (larger child of [%zd])", h->foot, c, i);
 		/* correct order, so we're done */
 		if (_heap_cmp_id (h, h->foot, c) >= 0)
 			break;
 		/* copy up */
-		DEBUG ("\t\tcopy [%zd] up to [%zd]", c, i);
+		HEAPDBG ("\t\tcopy [%zd] up to [%zd]", c, i);
 		_heap_set_id (h, i, c);
 	}
 	/* now the order is correct, reinsert the last item */
-	DEBUG ("\tcopy last element [%zd] to %zd", h->foot, i);
+	HEAPDBG ("\tcopy last element [%zd] to %zd", h->foot, i);
 	_heap_set_id (h, i, h->foot);
 	return 1;
 }
@@ -103,20 +112,20 @@ int heapdown (bheap_t *h, void *p) {
 	return heapdowni (h, p, (size_t i)0);
 }
 
+#ifndef NDEBUG
 int heapverify (bheap_t *h) {
 	size_t i;
 	if (h->foot < 2)
 		return 1;
 	for (i = h->foot - 1; i; i--) {
 		if (_heap_cmp_id (h, _heap_parent (i), i) < 0) {
-			fprintf (stderr, "heap verify failed at id#%zd\n", i);
+			HEAPDBG ("heap verify failed at id#%zd\n", i);
 			return 0;
 		}
 	}
 	return 1;
 }
 
-#ifndef NDEBUG
 void heapdump (bheap_t *h, void (*out) (const void *, char *, size_t)) {
 	// should be ceil(log2(h->foot))?
 	size_t p[h->foot], n, i, c;
