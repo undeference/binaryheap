@@ -82,11 +82,12 @@ int heapdowni (bheap_t *h, void *p, size_t i) {
 	size_t c;
 	HEAPDBG ("copy to %p", p);
 
-	if (h->foot == 0)
+	if (h->foot <= 0 || h->foot <= i)
 		return 0;
 
 	/* copy the root element to output */
-	memcpy (p, _heap_item (h, i), h->size);
+	if (p)
+		memcpy (p, _heap_item (h, i), h->size);
 
 	if (--h->foot == 0)
 		return 1;
