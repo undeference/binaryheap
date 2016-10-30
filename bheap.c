@@ -113,6 +113,28 @@ int heapdown (bheap_t *h, void *p) {
 	return heapdowni (h, p, (size_t i)0);
 }
 
+int heapsearch (bheap_t *h, void *p, size_t i, int (*match)(const void *)) {
+	for (; i < h->foot; i++) {
+		if (match (_heap_item (h, i))) {
+			if (p)
+				memcpy (p, _heap_item (h, i), h->size);
+			return i + 1;
+		}
+	}
+	return -1;
+}
+
+int heapdelete (bheap_t *h, int (*match)(const void *)) {
+	size_t i, n = 0;
+	for (i = h->foot - 1; i >= 0; i--) {
+		if (match (_heap_item (h, i))) {
+			n++;
+			heapdowni (h, NULL, i);
+		}
+	}
+	return n;
+}
+
 #ifndef NDEBUG
 int heapverify (bheap_t *h) {
 	size_t i;
