@@ -17,10 +17,11 @@ int heappeek (bheap_t *h, void *p);
 void heapup (bheap_t *h, void *el);
 int heapdowni (bheap_t *h, void *p, size_t i);
 int heapdown (bheap_t *h, void *p);
-int heapsearch (bheap_t *h, void *p, size_t i, int (*match)(const void *));
-int heapdelete (bheap_t *h, int (*match)(const void *));
+int heapsearch (bheap_t *h, void *p, size_t i, int (*match)(const void *, void *), void *arg);
+int heapdelete (bheap_t *h, int (*match)(const void *, void *), void *arg);
 #ifndef NDEBUG
 int heapverify (bheap_t *h);
 void heapdump (bheap_t *h, void (*out) (const void *, char *, size_t));
 #endif
+
 #endif
