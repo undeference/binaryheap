@@ -19,8 +19,8 @@ int heapdowni (bheap_t *h, void *p, size_t i);
 int heapdown (bheap_t *h, void *p);
 int heapsearch (bheap_t *h, void *p, size_t i, int (*match)(const void *));
 int heapdelete (bheap_t *h, int (*match)(const void *));
-int heapverify (bheap_t *h);
 #ifndef NDEBUG
+int heapverify (bheap_t *h);
 void heapdump (bheap_t *h, void (*out) (const void *, char *, size_t));
 #endif
 #endif
