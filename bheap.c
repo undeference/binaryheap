@@ -1,4 +1,6 @@
+#include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <bheap.h>
 
 #ifdef HEAPDEBUG
@@ -110,7 +112,7 @@ int heapdowni (bheap_t *h, void *p, size_t i) {
 }
 
 int heapdown (bheap_t *h, void *p) {
-	return heapdowni (h, p, (size_t i)0);
+	return heapdowni (h, p, 0);
 }
 
 int heapsearch (bheap_t *h, void *p, size_t i, int (*match)(const void *, void *arg), void *arg) {
@@ -170,7 +172,7 @@ void heapdump (bheap_t *h, void (*out) (const void *, char *, size_t)) {
 			y[0] = z[0] = '\0';
 		fprintf (stderr, "%*s[%zd] %s [[%zd] %s, [%zd] %s]\n",
 		// 0; 1,2; 3,4; 5,6; 7,8
-			(i + 1 & ~1), "",
+			(int)((i + 1) & ~1), "",
 			p[i], x,
 			c, y,
 			c + 1, z);
