@@ -129,6 +129,8 @@ int heapsearch (bheap_t *h, void *p, size_t i, int (*match)(const void *, void *
 int heapdelete (bheap_t *h, int (*match)(const void *, void *), void *arg) {
 	ssize_t i;
 	size_t n = 0;
+	if (h->foot < 1)
+		return 0;
 	for (i = h->foot - 1; i >= 0; i--) {
 		if (match (_heap_item (h, i), arg)) {
 			n++;
