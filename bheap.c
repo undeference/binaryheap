@@ -1,16 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include <bheap.h>
-
-#ifdef HEAPDEBUG
-#include <stdio.h>
-#define HEAPDBG(f,...) \
-	fprintf (stderr, "%s:%d %s() " f "\n", \
-		__FILE__, __LINE__, __func__, ##__VA_ARGS__)
-#else
-#define HEAPDBG(f,...)
-#endif
 
 bheap_t *heapalloc (int dir, size_t nmemb, size_t size, int (*cmp)(const void *, const void *)) {
 	bheap_t *h = malloc (sizeof (bheap_t) + nmemb * size);
@@ -19,6 +9,7 @@ bheap_t *heapalloc (int dir, size_t nmemb, size_t size, int (*cmp)(const void *,
 	h->size = size;
 	h->cmp = cmp;
 	h->foot = 0;
+	h->lock = 0;
 	HEAPDBG ("%s-heap %p of up to %zd items of size %zd",
 		h->dir < 0 ? "min" : "max", h, h->num, h->size);
 	return h;
@@ -56,13 +47,29 @@ int heappeek (bheap_t *h, void *p) {
 	return 1;
 }
 
+int heaplocked (bheap_t *h) {
+	return h->lock;
+}
+
+int heaplock (bheap_t *h) {
+	return h->lock ? 0 : (h->lock = 1);
+}
+
+int heapunlock (bheap_t *h) {
+	return h->lock ? !(h->lock = 0) : 0;
+}
+
 /*
  * 1. add element to bottom
  * 2. compare with parent; if not in correct order…
  * 3. swap with parent and continue 2
  */
-void heapup (bheap_t *h, void *el) {
+int heapup (bheap_t *h, void *el) {
 	size_t i, p;
+	if (h->foot >= h->num)
+		return 0;
+	if (!heaplock (h))
+		return 0;
 	for (i = h->foot++; i; i = p) {
 		p = _heap_parent (i);
 		/* correct order, so we're done */
@@ -73,6 +80,7 @@ void heapup (bheap_t *h, void *el) {
 	}
 	/* now the order is correct, insert the item */
 	_heap_set (h, i, el);
+	return heapunlock (h);
 }
 
 /*
@@ -91,8 +99,13 @@ int heapdowni (bheap_t *h, void *p, size_t i) {
 	if (p)
 		memcpy (p, _heap_item (h, i), h->size);
 
-	if (--h->foot == 0)
+	if (!heaplock (h))
+		return 0;
+
+	if (--h->foot == 0) {
+		heapunlock (h);
 		return 1;
+	}
 	for (; (c = _heap_left (i)) < h->foot; i = c) {
 		/* find the bigger child */
 		if (c + 1 < h->foot && _heap_cmp_id (h, c, c + 1) < 0)
@@ -108,6 +121,7 @@ int heapdowni (bheap_t *h, void *p, size_t i) {
 	/* now the order is correct, reinsert the last item */
 	HEAPDBG ("\tcopy last element [%zd] to %zd", h->foot, i);
 	_heap_set_id (h, i, h->foot);
+	heapunlock (h);
 	return 1;
 }
 
@@ -131,54 +145,14 @@ int heapdelete (bheap_t *h, int (*match)(const void *, void *), void *arg) {
 	size_t n = 0;
 	if (h->foot < 1)
 		return 0;
+	if (!heaplock (h))
+		return 0;
 	for (i = h->foot - 1; i >= 0; i--) {
 		if (match (_heap_item (h, i), arg)) {
 			n++;
 			heapdowni (h, NULL, i);
 		}
 	}
+	heapunlock (h);
 	return n;
 }
-
-#ifndef NDEBUG
-int heapverify (bheap_t *h) {
-	size_t i;
-	if (h->foot < 2)
-		return 1;
-	for (i = h->foot - 1; i; i--) {
-		if (_heap_cmp_id (h, _heap_parent (i), i) < 0) {
-			HEAPDBG ("heap verify failed at id#%zd\n", i);
-			return 0;
-		}
-	}
-	return 1;
-}
-
-void heapdump (bheap_t *h, void (*out) (const void *, char *, size_t)) {
-	// should be ceil(log2(h->foot))?
-	size_t p[h->foot], n, i, c;
-	char x[17], y[17], z[17];
-	p[0] = 0;
-	n = 1;
-	for (i = 0; i < n && p[i] < h->foot; i++) {
-		out (_heap_item (h, p[i]), x, sizeof (x));
-		c = _heap_left (p[i]);
-		if (c < h->foot) {
-			p[n++] = c;
-			out (_heap_item (h, c), y, sizeof (y));
-			if (c + 1 < h->foot) {
-				p[n++] = c + 1;
-				out (_heap_item (h, c + 1), z, sizeof (z));
-			} else
-				z[0] = '\0';
-		} else
-			y[0] = z[0] = '\0';
-		fprintf (stderr, "%*s[%zd] %s [[%zd] %s, [%zd] %s]\n",
-		// 0; 1,2; 3,4; 5,6; 7,8
-			(int)((i + 1) & ~1), "",
-			p[i], x,
-			c, y,
-			c + 1, z);
-	}
-}
-#endif
