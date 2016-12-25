@@ -99,13 +99,8 @@ int heapdowni (bheap_t *h, void *p, size_t i) {
 	if (p)
 		memcpy (p, _heap_item (h, i), h->size);
 
-	if (!heaplock (h))
-		return 0;
-
-	if (--h->foot == 0) {
-		heapunlock (h);
+	if (--h->foot == 0)
 		return 1;
-	}
 	for (; (c = _heap_left (i)) < h->foot; i = c) {
 		/* find the bigger child */
 		if (c + 1 < h->foot && _heap_cmp_id (h, c, c + 1) < 0)
@@ -121,12 +116,14 @@ int heapdowni (bheap_t *h, void *p, size_t i) {
 	/* now the order is correct, reinsert the last item */
 	HEAPDBG ("\tcopy last element [%zd] to %zd", h->foot, i);
 	_heap_set_id (h, i, h->foot);
-	heapunlock (h);
 	return 1;
 }
 
 int heapdown (bheap_t *h, void *p) {
-	return heapdowni (h, p, 0);
+	if (!heaplock (h) || !heapdowni (h, p, 0))
+		return 0;
+	heapunlock (h);
+	return 1;
 }
 
 int heapsearch (bheap_t *h, void *p, size_t i, int (*match)(const void *, void *arg), void *arg) {
