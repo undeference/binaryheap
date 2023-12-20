@@ -112,7 +112,7 @@ int heapdownri (bheap_t *h, void *p, void *r, size_t i) {
 		_heap_set_id (h, i, c);
 	}
 	/* now the order is correct, reinsert the last item */
-	HEAPDBG ("\tcopy item [%zd] to %zd", r, i);
+	HEAPDBG ("\tcopy item [%p] to %zd", r, i);
 	_heap_set (h, i, r);
 	return 1;
 }
