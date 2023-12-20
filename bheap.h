@@ -27,6 +27,7 @@ int heaplocked (bheap_t *h);
 int heaplock (bheap_t *h);
 int heapunlock (bheap_t *h);
 int heapup (bheap_t *h, void *el);
+int heapdownri (bheap_t *h, void *p, void *r, size_t i);
 int heapdowni (bheap_t *h, void *p, size_t i);
 int heapdown (bheap_t *h, void *p);
 int heapsearch (bheap_t *h, void *p, size_t i, int (*match)(const void *, void *), void *arg);

@@ -49,7 +49,6 @@ int bhcmp (const void *a, const void *b) {
 	return *(long *)a - *(long *)b;
 }
 
-#include <locale.h>
 void printer (const void *in, char *out, size_t len) {
 	snprintf (out, len, "%'ld", *(long *)in);
 }
@@ -61,14 +60,17 @@ int main (int argc, char **argv) {
 	size_t i;
 	bheap_t *heap = heapalloc (-1, MAXCNT, sizeof (long), bhcmp);
 	setlocale (LC_NUMERIC, "");
+	/* set this so our random numbers are predictable */
+	srandom (22);
 	/* set up our random list */
 	for (i = 0; i < TOTAL; i++)
 		nums[i] = random ();
 	/* check length */
-	for (i = 0; i < MAXCNT; i++)
+	for (i = 0; i < TOTAL; i++)
 		heapup (heap, &nums[i]);
 	assert (heapcount (heap) == MAXCNT);
 	heapdump (heap, printer);
+for(i=0;i<MAXCNT;i++){char out[100];heapdowni (heap, &cur, 0);printer(&cur, out, 100);fprintf (stderr, "popped %s\n", out);heapverify (heap);}
 	/* search, delete */
 	/* peek, remove, reinsert, reremove */
 	heapfree (heap);
