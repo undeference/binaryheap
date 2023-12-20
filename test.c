@@ -1,5 +1,7 @@
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <locale.h>
 #include <bheap.c>
 
 int heapverify (bheap_t *h) {
@@ -47,19 +49,26 @@ int bhcmp (const void *a, const void *b) {
 	return *(long *)a - *(long *)b;
 }
 
-#define TOTAL 10000
-#define MAX 32;
+#include <locale.h>
+void printer (const void *in, char *out, size_t len) {
+	snprintf (out, len, "%'ld", *(long *)in);
+}
+
+#define TOTAL 48
+#define MAXCNT 32
 int main (int argc, char **argv) {
 	long nums[TOTAL], cur, prev;
 	size_t i;
-	bheap_t *heap = heapalloc (-1, MAX, sizeof (long), bhcmp);
+	bheap_t *heap = heapalloc (-1, MAXCNT, sizeof (long), bhcmp);
+	setlocale (LC_NUMERIC, "");
 	/* set up our random list */
 	for (i = 0; i < TOTAL; i++)
 		nums[i] = random ();
 	/* check length */
-	for (i = 0; i < MAX; i++)
+	for (i = 0; i < MAXCNT; i++)
 		heapup (heap, &nums[i]);
-	assert (heapcount (heap) == MAX);
+	assert (heapcount (heap) == MAXCNT);
+	heapdump (heap, printer);
 	/* search, delete */
 	/* peek, remove, reinsert, reremove */
 	heapfree (heap);

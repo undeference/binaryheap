@@ -88,7 +88,7 @@ int heapup (bheap_t *h, void *el) {
  * 2. compare root with children; if not in correct order…
  * 3. swap with the correct child (based on dir)
  */
-int heapdowni (bheap_t *h, void *p, size_t i) {
+int heapdownri (bheap_t *h, void *p, void *r, size_t i) {
 	size_t c;
 	HEAPDBG ("copy to %p", p);
 
@@ -99,8 +99,6 @@ int heapdowni (bheap_t *h, void *p, size_t i) {
 	if (p)
 		memcpy (p, _heap_item (h, i), h->size);
 
-	if (--h->foot == 0)
-		return 1;
 	for (; (c = _heap_left (i)) < h->foot; i = c) {
 		/* find the bigger child */
 		if (c + 1 < h->foot && _heap_cmp_id (h, c, c + 1) < 0)
@@ -114,9 +112,15 @@ int heapdowni (bheap_t *h, void *p, size_t i) {
 		_heap_set_id (h, i, c);
 	}
 	/* now the order is correct, reinsert the last item */
-	HEAPDBG ("\tcopy last element [%zd] to %zd", h->foot, i);
-	_heap_set_id (h, i, h->foot);
+	HEAPDBG ("\tcopy item [%zd] to %zd", r, i);
+	_heap_set (h, i, r);
 	return 1;
+}
+
+int heapdowni (bheap_t *h, void *p, size_t i) {
+	int r = heapdownri (h, p, _heap_item (h, h->foot), i);
+	h->foot--;
+	return r;
 }
 
 int heapdown (bheap_t *h, void *p) {
